@@ -137,7 +137,7 @@ def get_dataloader(cfg):
     print(f"Maximum length of target - {max_len_tgt}")'''
 
     train_dataloader = DataLoader(train_ds, batch_size=cfg['batch_size'], shuffle=True)
-    val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True)
+    val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=False)
 
     return train_dataloader, val_dataloader, ds.tokenizer_src, ds.tokenizer_tgt
 
