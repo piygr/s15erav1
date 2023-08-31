@@ -456,7 +456,9 @@ def greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len):
         out = model.decode(decoder_input, encoder_output, src_mask, decoder_mask)
 
         prob = model(out[:, -1])
+        print(prob.shape)
         _, next_word = torch.max(prob, dim=1)
+        print(next_word.shape)
 
         decoder_input = torch.cat(
             [decoder_input, torch.empty(1, 1).type_as(src).fill_(next_word.item())],
