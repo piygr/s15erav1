@@ -5,7 +5,9 @@ import pytorch_lightning as pl
 from tokenizers import Tokenizer
 
 from dataset import casual_mask
-from config import get_config
+from config import get_config, get_weights_file_path
+import torchmetrics
+from torch.utils.tensorboard import SummaryWriter
 
 class LayerNormalization(nn.Module):
     def __init__(self, eps:float=10**-6) -> None:
@@ -239,27 +241,41 @@ class TransformerV1LightningModel(pl.LightningModule):
         self.tokenizer_tgt = tokenizer_tgt
 
         self.loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_tgt.token_to_id('[PAD]'), label_smoothing=0.1)
+        self.cfg = get_config()
+
+        self.writer = SummaryWriter(self.cfg['experiment_name'])
+        self.last_val_batch = None
 
         self.metric = dict(
-            train_steps = 0,
-            val_steps = 0
+            total_train_steps=0,
+            epoch_train_loss=[],
+            epoch_train_acc=[],
+            epoch_train_steps=0,
+            total_val_steps=0,
+            epoch_val_loss=[],
+            epoch_val_acc=[],
+            epoch_val_steps=0,
+            train_loss=[],
+            val_loss=[],
+            train_acc=[],
+            val_acc=[]
         )
 
     def encode(self, src, src_mask):
-        src = self.src_embed(src)
-        src = self.src_pos(src)
+        src = self.src_embed(src) # (batch, seq_len) -> (batch, seq_len, d_model)
+        src = self.src_pos(src)   # (batch, seq_len, d_model) -> (batch, seq_len, d_model)
 
-        return self.encoder(src, src_mask)
+        return self.encoder(src, src_mask) # (batch, seq_len, d_model)
 
 
     def decode(self, tgt: torch.Tensor, encoder_output: torch.Tensor, src_mask: torch.Tensor, tgt_mask: torch.Tensor):
-        tgt = self.tgt_embed(tgt)
-        tgt = self.tgt_pos(tgt)
+        tgt = self.tgt_embed(tgt)   # (batch, seq_len) -> (batch, seq_len, d_model)
+        tgt = self.tgt_pos(tgt)     # (batch, seq_len, d_model) -> (batch, seq_len, d_model)
 
-        return self.decoder(tgt, encoder_output, src_mask, tgt_mask)
+        return self.decoder(tgt, encoder_output, src_mask, tgt_mask) # (batch, seq_len, d_model)
 
-    def forward(self, x):
-        return self.projection_layer(x)
+    def forward(self, x): #project(self, x)
+        return self.projection_layer(x) #(batch, seq_len, d_model) -> (batch, seq_len, vocab_size)
 
     def training_step(self, train_batch, batch_idx):
         encoder_input = train_batch['encoder_input']
@@ -267,16 +283,18 @@ class TransformerV1LightningModel(pl.LightningModule):
         encoder_mask = train_batch['encoder_mask']
         decoder_mask = train_batch['decoder_mask']
 
-        encoder_output = self.encode(encoder_input, encoder_mask)
-        decoder_output = self.decode(decoder_input, encoder_output, encoder_mask, decoder_mask)
-        proj_output = self.forward(decoder_output)
+        encoder_output = self.encode(encoder_input, encoder_mask)   # (batch, seq_len, d_model)
+        decoder_output = self.decode(decoder_input, encoder_output, encoder_mask, decoder_mask) # (batch, seq_len, d_model)
+        proj_output = self.forward(decoder_output)  # (batch, seq_len, vocab_size)
 
         label = train_batch['label']
 
         loss = self.loss_fn( proj_output.view(-1, self.tokenizer_tgt.get_vocab_size()), label.view(-1))
         self.log_dict({'train_loss': loss.item()})
 
-        self.metric['train_steps'] += 1
+        self.metric['total_train_steps'] += 1
+        self.metric['epoch_train_steps'] += 1
+        self.metric['epoch_train_loss'].append(loss.item())
 
         return loss
 
@@ -295,11 +313,44 @@ class TransformerV1LightningModel(pl.LightningModule):
         loss = self.loss_fn(proj_output.view(-1, self.tokenizer_tgt.get_vocab_size()), label.view(-1))
         self.log_dict({'val_loss': loss.item()})
 
-        self.metric['val_steps'] += 1
+        self.metric['total_val_steps'] += 1
+        self.metric['epoch_val_steps'] += 1
+        self.metric['epoch_val_loss'].append(loss.item())
+
+        self.last_val_batch = val_batch
+
+
 
     def on_validation_epoch_end(self):
-        if self.metric['train_steps'] > 0:
+        if self.metric['epoch_train_steps'] > 0:
             print('Epoch ', self.current_epoch)
+
+            epoch_loss = 0
+            for i in range(self.metric['epoch_train_steps']):
+                epoch_loss += self.metric['epoch_train_loss'][i]
+
+            epoch_loss = epoch_loss / self.metric['epoch_train_steps']
+            print(f"Train Loss: {epoch_loss:5f}")
+            self.metric['epoch_train_steps'] = 0
+            self.metric['train_loss'].append(epoch_loss)
+
+            epoch_loss = 0
+            for i in range(self.metric['epoch_val_steps']):
+                epoch_loss += self.metric['epoch_val_loss'][i]
+
+            epoch_loss = epoch_loss / self.metric['epoch_val_steps']
+            print(f"Validation Loss: {epoch_loss:5f}")
+
+            self.metric['epoch_val_steps'] = 0
+            self.metric['val_loss'].append(epoch_loss)
+            print('------')
+
+            run_validation(self, self.last_val_batch, self.tokenizer_src, self.tokenizer_tgt, self.cfg['seq_len'])
+
+            print('--------------------')
+            self.trainer.save_checkpoint( get_weights_file_path(self.cfg, f"{self.current_epoch:02d}") )
+
+
 
     def test_step(self, test_batch, batch_idx):
         self.validation_step(test_batch, batch_idx)
@@ -311,8 +362,7 @@ class TransformerV1LightningModel(pl.LightningModule):
         return self.trainer.train_dataloader
 
     def configure_optimizers(self):
-        cfg = get_config()
-        optimizer = torch.optim.Adam(self.parameters(), lr=cfg.lr, eps=1e-9)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg.lr, eps=1e-9)
         '''scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
                                                         max_lr=cfg.LEARNING_RATE,
                                                         epochs=self.trainer.max_epochs,
@@ -388,19 +438,19 @@ def build_transformer(src_vocab_size: int, tgt_vocab_size: int, src_seq_len: int
     return transformer
 
 
-def greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len, device):
+def greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len):
     sos_idx = tokenizer_tgt.token_to_id('[SOS]')
     eos_idx = tokenizer_tgt.token_to_id('[EOS]')
 
     encoder_output = model.encode(src, src_mask)
 
-    decoder_input = torch.empty(1, 1).fill_(sos_idx).type_as(src).to(device)
+    decoder_input = torch.empty(1, 1).fill_(sos_idx).type_as(src)
 
     while True:
         if decoder_input.size(1) == max_len:
             break
 
-        decoder_mask = casual_mask(decoder_input.size(1)).type_as(src_mask).to(device)
+        decoder_mask = casual_mask(decoder_input.size(1)).type_as(src_mask)
 
         out = model.decode(decoder_input, encoder_output, src_mask, decoder_mask)
 
@@ -408,7 +458,7 @@ def greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len, d
         _, next_word = torch.max(prob, dim=1)
 
         decoder_input = torch.cat(
-            [decoder_input, torch.empty(1, 1).type_as(src).fill_(next_word.item()).to(device)],
+            [decoder_input, torch.empty(1, 1).type_as(src).fill_(next_word.item())],
             dim=0
         )
 
@@ -416,3 +466,41 @@ def greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len, d
             break
 
     return decoder_input.squeeze(0)
+
+
+def run_validation(model, data, tokenizer_src, tokenizer_tgt, max_len):
+    model.eval()
+
+    src = data['encoder_input']
+    src_mask = data['encoder_mask']
+
+    model_out = greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len)
+
+    source_text = data['src_text']
+    target_text = data['tgt_text']
+    model_out_text = tokenizer_tgt.decode(model_out)
+
+    expected = [target_text]
+    predicted = [model_out_text]
+
+    print(f"SOURCE := {source_text}")
+    print(f"EXPECTED := {expected}")
+    print(f"PREDICTED := {predicted}")
+
+    metric = torchmetrics.CharErrorRate()
+    cer = metric(predicted, expected)
+
+    print(f"Validation cer: {cer}")
+
+    metric = torchmetrics.WordErrorRate()
+    wer = metric(predicted, expected)
+
+    print(f"Validation wer: {wer}")
+
+    metric = torchmetrics.BLEUScore()
+    bleu = metric(predicted, expected)
+
+    print(f"Validation BLEU: {bleu}")
+
+    model.train()
+
