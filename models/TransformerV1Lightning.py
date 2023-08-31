@@ -45,6 +45,7 @@ class InputEmbeddings(nn.Module):
 
     def forward(self, x):
         # (batch, seq_len) -> (batch, seq_len, d_model)
+        print(x.shape)
         return self.embedding(x) * math.sqrt(self.d_model)
 
 class PositionalEncoding(nn.Module):
@@ -264,7 +265,9 @@ class TransformerV1LightningModel(pl.LightningModule):
         )
 
     def encode(self, src, src_mask):
+        print(src.shape)
         src = self.src_embed(src) # (batch, seq_len) -> (batch, seq_len, d_model)
+        print(src.shape)
         src = self.src_pos(src)   # (batch, seq_len, d_model) -> (batch, seq_len, d_model)
 
         return self.encoder(src, src_mask) # (batch, seq_len, d_model)
