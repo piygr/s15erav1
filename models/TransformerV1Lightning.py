@@ -281,6 +281,7 @@ class TransformerV1LightningModel(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         encoder_input = train_batch['encoder_input']
+        print(encoder_input.shape)
         decoder_input = train_batch['decoder_input']
         encoder_mask = train_batch['encoder_mask']
         decoder_mask = train_batch['decoder_mask']
