@@ -362,7 +362,7 @@ class TransformerV1LightningModel(pl.LightningModule):
         return self.trainer.train_dataloader
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg.lr, eps=1e-9)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg['lr'], eps=1e-9)
         '''scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
                                                         max_lr=cfg.LEARNING_RATE,
                                                         epochs=self.trainer.max_epochs,

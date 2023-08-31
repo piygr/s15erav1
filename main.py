@@ -36,7 +36,7 @@ def init(train=True):
         if cfg['preload']:
             cargs = dict(ckpt_path=config.get_weights_file_path(cfg, '1'))
 
-            trainer.fit(model, train_dataloader, val_dataloader, **cargs)
+        trainer.fit(model, train_dataloader, val_dataloader, **cargs)
     '''else:
         ckpt_file = kwargs.get('ckpt_file')
         if ckpt_file:
