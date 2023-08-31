@@ -107,7 +107,7 @@ class BillingualDataset(Dataset):
     def get_ds(self):
         ds_raw = load_dataset('opus_books', f"{self.cfg['lang_src']}-{self.cfg['lang_tgt']}", split='train')
         self.ds = ds_raw
-        
+
         tokenizer_src = self.get_or_build_tokenizer(self.cfg['lang_src'])
         tokenizer_tgt = self.get_or_build_tokenizer(self.cfg['lang_tgt'])
 
@@ -127,8 +127,8 @@ def get_dataloader(cfg):
     max_len_tgt = 0
 
     for item in ds:
-        src_ids = ds.tokenizer_src.encode(item['translation'][cfg['lang_src']]).ids
-        tgt_ids = ds.tokenizer_tgt.encode(item['translation'][cfg['lang_tgt']]).ids
+        src_ids = ds.tokenizer_src.encode(item['src_text']).ids
+        tgt_ids = ds.tokenizer_tgt.encode(item['tgt_text']).ids
 
         max_len_src = max(max_len_src, len(src_ids))
         max_len_tgt = max(max_len_tgt, len(tgt_ids))
