@@ -126,7 +126,7 @@ def get_dataloader(cfg):
     max_len_src = 0
     max_len_tgt = 0
 
-    for item in ds:
+    '''for item in ds:
         src_ids = ds.tokenizer_src.encode(item['src_text']).ids
         tgt_ids = ds.tokenizer_tgt.encode(item['tgt_text']).ids
 
@@ -134,7 +134,7 @@ def get_dataloader(cfg):
         max_len_tgt = max(max_len_tgt, len(tgt_ids))
 
     print(f"Maximum length of source - {max_len_src}")
-    print(f"Maximum length of target - {max_len_tgt}")
+    print(f"Maximum length of target - {max_len_tgt}")'''
 
     train_dataloader = DataLoader(train_ds, batch_size=cfg['batch_size'], shuffle=True)
     val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True)

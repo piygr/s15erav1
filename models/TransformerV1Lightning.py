@@ -220,7 +220,7 @@ class ProjectionLayer(nn.Module):
 
 
 class TransformerV1LightningModel(pl.LightningModule):
-    def __init(self, encoder: Encoder, decoder: Decoder, projection_layer: ProjectionLayer,
+    def __init__(self, encoder: Encoder, decoder: Decoder, projection_layer: ProjectionLayer,
                src_embed: InputEmbeddings, tgt_embed: InputEmbeddings,
                src_pos: PositionalEncoding, tgt_pos: PositionalEncoding,
                tokenizer_src: Tokenizer, tokenizer_tgt: Tokenizer) -> None:
