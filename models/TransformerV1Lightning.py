@@ -45,7 +45,6 @@ class InputEmbeddings(nn.Module):
 
     def forward(self, x):
         # (batch, seq_len) -> (batch, seq_len, d_model)
-        print(x.shape)
         return self.embedding(x) * math.sqrt(self.d_model)
 
 class PositionalEncoding(nn.Module):
@@ -70,8 +69,7 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         # x: (batch, seq_len, d_model)
-        print('x:', x.shape)
-        print('pe:', self.pe.shape)
+
         x = x + (self.pe[:, :x.shape[1], :]).requires_grad_(False)  #(batch, seq_len, d_model)
 
         return self.dropout(x)
@@ -104,7 +102,7 @@ class MultiHeadAttentionBlock(nn.Module):
 
     @staticmethod
     def attention(query, key, value, mask, dropout: nn.Dropout):
-        d_k = query.shape(-1)
+        d_k = query.shape[-1]
 
         # query: (batch, h, seq_len, d_k)
         # key: (batch, h, seq_len, d_k)
@@ -265,9 +263,7 @@ class TransformerV1LightningModel(pl.LightningModule):
         )
 
     def encode(self, src, src_mask):
-        print(src.shape)
         src = self.src_embed(src) # (batch, seq_len) -> (batch, seq_len, d_model)
-        print(src.shape)
         src = self.src_pos(src)   # (batch, seq_len, d_model) -> (batch, seq_len, d_model)
 
         return self.encoder(src, src_mask) # (batch, seq_len, d_model)
@@ -284,7 +280,6 @@ class TransformerV1LightningModel(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         encoder_input = train_batch['encoder_input']
-        print(encoder_input.shape)
         decoder_input = train_batch['decoder_input']
         encoder_mask = train_batch['encoder_mask']
         decoder_mask = train_batch['decoder_mask']
