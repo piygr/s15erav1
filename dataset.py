@@ -106,7 +106,8 @@ class BillingualDataset(Dataset):
 
     def get_ds(self):
         ds_raw = load_dataset('opus_books', f"{self.cfg['lang_src']}-{self.cfg['lang_tgt']}", split='train')
-
+        self.ds = ds_raw
+        
         tokenizer_src = self.get_or_build_tokenizer(self.cfg['lang_src'])
         tokenizer_tgt = self.get_or_build_tokenizer(self.cfg['lang_tgt'])
 
