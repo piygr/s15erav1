@@ -330,33 +330,33 @@ class TransformerV1LightningModel(pl.LightningModule):
 
 
     def on_validation_epoch_end(self):
-        #if self.metric['epoch_train_steps'] > 0:
-        print('Epoch ', self.current_epoch)
+        if self.metric['epoch_train_steps'] > 0:
+            print('Epoch ', self.current_epoch)
 
-        epoch_loss = 0
-        for i in range(self.metric['epoch_train_steps']):
-            epoch_loss += self.metric['epoch_train_loss'][i]
+            epoch_loss = 0
+            for i in range(self.metric['epoch_train_steps']):
+                epoch_loss += self.metric['epoch_train_loss'][i]
 
-        epoch_loss = epoch_loss / self.metric['epoch_train_steps']
-        print(f"Train Loss: {epoch_loss:5f}")
-        self.metric['epoch_train_steps'] = 0
-        self.metric['train_loss'].append(epoch_loss)
+            epoch_loss = epoch_loss / self.metric['epoch_train_steps']
+            print(f"Train Loss: {epoch_loss:5f}")
+            self.metric['epoch_train_steps'] = 0
+            self.metric['train_loss'].append(epoch_loss)
 
-        epoch_loss = 0
-        for i in range(self.metric['epoch_val_steps']):
-            epoch_loss += self.metric['epoch_val_loss'][i]
+            epoch_loss = 0
+            for i in range(self.metric['epoch_val_steps']):
+                epoch_loss += self.metric['epoch_val_loss'][i]
 
-        epoch_loss = epoch_loss / self.metric['epoch_val_steps']
-        print(f"Validation Loss: {epoch_loss:5f}")
+            epoch_loss = epoch_loss / self.metric['epoch_val_steps']
+            print(f"Validation Loss: {epoch_loss:5f}")
 
-        self.metric['epoch_val_steps'] = 0
-        self.metric['val_loss'].append(epoch_loss)
-        print('------')
+            self.metric['epoch_val_steps'] = 0
+            self.metric['val_loss'].append(epoch_loss)
+            print('------')
 
-        run_validation(self, self.last_val_batch, self.tokenizer_src, self.tokenizer_tgt, self.cfg['seq_len'])
+            run_validation(self, self.last_val_batch, self.tokenizer_src, self.tokenizer_tgt, self.cfg['seq_len'])
 
-        print('--------------------')
-        self.trainer.save_checkpoint( get_weights_file_path(self.cfg, f"{self.current_epoch:02d}") )
+            print('--------------------')
+            self.trainer.save_checkpoint( get_weights_file_path(self.cfg, f"{self.current_epoch:02d}") )
 
 
 
