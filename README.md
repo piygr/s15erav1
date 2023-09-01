@@ -1,10 +1,13 @@
 # Session 15 Assignment
-To built full transformer for language translation (Only to run for 10 epochs training)
+To build a full transformer for language translation (Only to run for 10 epochs of training)
+
+## Transformer Architecture
+<img width="1013" alt="transformers" src="https://github.com/piygr/s15erav1/assets/135162847/610de7d6-d869-4841-bb79-ee43ba1a692e">
 
 
 ------
 ## models/TransformerV1Lightning.py
-The file contains the Transformer Lightning model as desired in the assignment. 
+The file contains **TransformerV1LightningModel** - a Transformer model written in pytorch-lightning as desired in the assignment. 
 
 Here is the summary of the network -
 
