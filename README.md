@@ -81,6 +81,72 @@ Validation cer: 0.6527777910232544
 Validation wer: 1.058823585510254
 Validation BLEU: 0.0
 --------------------
+Epoch  4
+Train Loss: 4.728517
+Validation Loss: 4.722586
+------
+SOURCE := [He bowed, still not taking his eyes from the group of the dog and child.]
+EXPECTED := ['Egli chinò la testa, senza togliere lo sguardo dalla bambina e dal cane, e disse:']
+PREDICTED := ['Egli si alzò , non si , si dalla poltrona e la vecchia bambina .']
+Validation cer: 0.6419752836227417
+Validation wer: 0.800000011920929
+Validation BLEU: 0.0
+--------------------
+Epoch  5
+Train Loss: 4.480361
+Validation Loss: 4.652407
+------
+SOURCE := [When the wife left the box the husband loitered behind, trying to catch Anna's eye and evidently wishing to bow to her.]
+EXPECTED := ['Quando la moglie uscì, il marito si attardò a lungo, cercando con gli occhi lo sguardo di Anna, con l’evidente desiderio di salutarla.']
+PREDICTED := ['Quando la moglie si avvicinò alla contessa , si mise a sedere , cercando di e si mise a .']
+Validation cer: 0.611940324306488
+Validation wer: 0.8260869383811951
+Validation BLEU: 0.0
+--------------------
+Epoch  6
+Train Loss: 4.246380
+Validation Loss: 4.611298
+------
+SOURCE := [When the wife left the box the husband loitered behind, trying to catch Anna's eye and evidently wishing to bow to her.]
+EXPECTED := ['Quando la moglie uscì, il marito si attardò a lungo, cercando con gli occhi lo sguardo di Anna, con l’evidente desiderio di salutarla.']
+PREDICTED := ['Quando la moglie si avvicinò alla stazione , Aleksej Aleksandrovic si mise a , cercando di l ’ occhio e , evidentemente , si mise a .']
+Validation cer: 0.611940324306488
+Validation wer: 0.9130434989929199
+Validation BLEU: 0.0
+--------------------
+Epoch  7
+Train Loss: 4.015939
+Validation Loss: 4.594482
+------
+SOURCE := [“However, my old friend,” says he, “you shall not want a supply in your necessity; and as soon as my son returns you shall be fully satisfied.” Upon this he pulls out an old pouch, and gives me one hundred and sixty Portugal moidores in gold; and giving the writings of his title to the ship, which his son was gone to the Brazils in, of which he was quarter-part owner, and his son another, he puts them both into my hands for security of the rest.]
+EXPECTED := ['Ciò non ostante il mio buon capitano confessò d’andarmi debitore di quattrocento settanta moidori d’oro oltre al valore di sessanta casse di zucchero, e di quindici doppi rotoli di tabacco, le quali mercanzie avea perdute insieme con la nave che le portava, per un naufragio cui quel poveretto soggiacque nel tornare a Lisbona undici anni dopo la mia partenza. Qui mi raccontò come si trovasse costretto a valersi del mio danaro, per riparare i sofferti danni e comperarsi una parte di proprietà in altro vascello mercantile.']
+PREDICTED := ['« Ma il mio vecchio capitano non si può , e non potete dir vero che la vostra vita non in me ; e la vostra storia si di questo figlio , e di e di in un ’ antica piantagione , e di in un ’ altra parte del figlio , e di che fu il capitano . — « La mia piantagione , in un ’ altra parte , il mio figlio , mi ha fatto che il mio figlio si , e la mia scialuppa , e la mia storia .']
+Validation cer: 0.691428542137146
+Validation wer: 1.0116279125213623
+Validation BLEU: 0.0
+--------------------
+Epoch  8
+Train Loss: 3.793747
+Validation Loss: 4.627824
+------
+SOURCE := [Was it suspected that this lunatic, Mrs. Rochester, had any hand in it?"]
+EXPECTED := ['i sospetti non son caduti sulla pazza?']
+PREDICTED := ['È forse che quella signora Fairfax , che era stata in mano ?']
+Validation cer: 1.1578947305679321
+Validation wer: 1.8571428060531616
+Validation BLEU: 0.0
+--------------------
+Epoch  9
+Train Loss: 3.579768
+Validation Loss: 4.650926
+------
+SOURCE := ['Because it means going goodness knows where, and by what roads! to what inns!]
+EXPECTED := ['— Perché andare Dio sa dove, chi sa per quali strade, in quali alberghi.']
+PREDICTED := ['— Perché lo , dove ne parla , e che cosa si tratta di questa primavera !']
+Validation cer: 0.6666666865348816
+Validation wer: 1.0714285373687744
+Validation BLEU: 0.0
+--------------------
 ```
 
 ## How to setup locally
