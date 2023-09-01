@@ -1,4 +1,6 @@
 import math
+import random
+
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
@@ -303,6 +305,12 @@ class TransformerV1LightningModel(pl.LightningModule):
         self.metric['epoch_train_loss'].append(loss.item())
 
         #run_validation(self, self.last_val_batch, self.tokenizer_src, self.tokenizer_tgt, self.cfg['seq_len'])
+        '''
+        batch_count = self.trainer.num_val_batches[0]
+        print(f'Val Batch Count: {batch_count}')
+        print(random.randint(0, batch_count-1), batch_idx)
+        '''
+
 
         return loss
 
@@ -326,7 +334,9 @@ class TransformerV1LightningModel(pl.LightningModule):
         self.metric['epoch_val_steps'] += 1
         self.metric['epoch_val_loss'].append(loss.item())
 
-        self.last_val_batch = val_batch
+        batch_count = self.trainer.num_val_batches[0]
+        if random.randint(1, batch_count) > batch_idx:
+            self.last_val_batch = val_batch
 
 
     def on_validation_epoch_end(self):
