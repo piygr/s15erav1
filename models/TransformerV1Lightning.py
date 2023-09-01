@@ -198,6 +198,7 @@ class DecoderBlock(nn.Module):
         x = self.residual_connections[1](x, lambda t: self.cross_attention_block(t, encoder_output, encoder_output, src_mask))
         x = self.residual_connections[2](x, self.feed_forward_block)
 
+        #print('Decoder block: ', x.shape)
         return x
 
 class Decoder(nn.Module):
@@ -209,6 +210,7 @@ class Decoder(nn.Module):
     def forward(self, x, encoder_output, src_mask, tgt_mask):
         for layer in self.layers:
             x = layer(x, encoder_output, src_mask, tgt_mask)
+            #print('Decoder layer: ', x.shape)
         return self.norm(x)
 
 
@@ -219,7 +221,9 @@ class ProjectionLayer(nn.Module):
 
     def forward(self, x):
         #x : (batch, seq_len, d_model) -> (batch, seq_len, vocab_size)
-        return torch.log_softmax(self.proj(x), dim = -1)
+        x = torch.log_softmax(self.proj(x), dim = -1)
+        #print('Project layer: ', x.shape)
+        return x
 
 
 class TransformerV1LightningModel(pl.LightningModule):
@@ -279,6 +283,7 @@ class TransformerV1LightningModel(pl.LightningModule):
         return self.projection_layer(x) #(batch, seq_len, d_model) -> (batch, seq_len, vocab_size)
 
     def training_step(self, train_batch, batch_idx):
+        #print('--TRAIN STEP--')
         encoder_input = train_batch['encoder_input']
         decoder_input = train_batch['decoder_input']
         encoder_mask = train_batch['encoder_mask']
@@ -297,9 +302,12 @@ class TransformerV1LightningModel(pl.LightningModule):
         self.metric['epoch_train_steps'] += 1
         self.metric['epoch_train_loss'].append(loss.item())
 
+        #run_validation(self, self.last_val_batch, self.tokenizer_src, self.tokenizer_tgt, self.cfg['seq_len'])
+
         return loss
 
     def validation_step(self, val_batch, batch_idx):
+        #print('--VAL STEP--')
         encoder_input = val_batch['encoder_input']
         decoder_input = val_batch['decoder_input']
         encoder_mask = val_batch['encoder_mask']
@@ -321,35 +329,34 @@ class TransformerV1LightningModel(pl.LightningModule):
         self.last_val_batch = val_batch
 
 
-
     def on_validation_epoch_end(self):
-        if self.metric['epoch_train_steps'] > 0:
-            print('Epoch ', self.current_epoch)
+        #if self.metric['epoch_train_steps'] > 0:
+        print('Epoch ', self.current_epoch)
 
-            epoch_loss = 0
-            for i in range(self.metric['epoch_train_steps']):
-                epoch_loss += self.metric['epoch_train_loss'][i]
+        epoch_loss = 0
+        for i in range(self.metric['epoch_train_steps']):
+            epoch_loss += self.metric['epoch_train_loss'][i]
 
-            epoch_loss = epoch_loss / self.metric['epoch_train_steps']
-            print(f"Train Loss: {epoch_loss:5f}")
-            self.metric['epoch_train_steps'] = 0
-            self.metric['train_loss'].append(epoch_loss)
+        epoch_loss = epoch_loss / self.metric['epoch_train_steps']
+        print(f"Train Loss: {epoch_loss:5f}")
+        self.metric['epoch_train_steps'] = 0
+        self.metric['train_loss'].append(epoch_loss)
 
-            epoch_loss = 0
-            for i in range(self.metric['epoch_val_steps']):
-                epoch_loss += self.metric['epoch_val_loss'][i]
+        epoch_loss = 0
+        for i in range(self.metric['epoch_val_steps']):
+            epoch_loss += self.metric['epoch_val_loss'][i]
 
-            epoch_loss = epoch_loss / self.metric['epoch_val_steps']
-            print(f"Validation Loss: {epoch_loss:5f}")
+        epoch_loss = epoch_loss / self.metric['epoch_val_steps']
+        print(f"Validation Loss: {epoch_loss:5f}")
 
-            self.metric['epoch_val_steps'] = 0
-            self.metric['val_loss'].append(epoch_loss)
-            print('------')
+        self.metric['epoch_val_steps'] = 0
+        self.metric['val_loss'].append(epoch_loss)
+        print('------')
 
-            run_validation(self, self.last_val_batch, self.tokenizer_src, self.tokenizer_tgt, self.cfg['seq_len'])
+        run_validation(self, self.last_val_batch, self.tokenizer_src, self.tokenizer_tgt, self.cfg['seq_len'])
 
-            print('--------------------')
-            self.trainer.save_checkpoint( get_weights_file_path(self.cfg, f"{self.current_epoch:02d}") )
+        print('--------------------')
+        self.trainer.save_checkpoint( get_weights_file_path(self.cfg, f"{self.current_epoch:02d}") )
 
 
 
@@ -440,6 +447,7 @@ def build_transformer(src_vocab_size: int, tgt_vocab_size: int, src_seq_len: int
 
 
 def greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len):
+    #print('--Greed Decode--')
     sos_idx = tokenizer_tgt.token_to_id('[SOS]')
     eos_idx = tokenizer_tgt.token_to_id('[EOS]')
 
@@ -454,19 +462,22 @@ def greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len):
         decoder_mask = casual_mask(decoder_input.size(1)).type_as(src_mask)
 
         out = model.decode(decoder_input, encoder_output, src_mask, decoder_mask)
-
-        prob = model(out[:, -1])
-        print(prob.shape)
+        #print('out: ', out.shape)
+        prob = model.forward(out[:, -1])
+        #print('prob: ', prob.shape)
         _, next_word = torch.max(prob, dim=1)
-        print(next_word.shape)
-
+        #print('next_word: ', next_word.shape)
+        #print('word: ', next_word)
         decoder_input = torch.cat(
             [decoder_input, torch.empty(1, 1).type_as(src).fill_(next_word.item())],
-            dim=0
+            dim=1
         )
 
+        #print('decoder_input.shape: ', decoder_input.shape)
         if next_word == eos_idx:
             break
+
+    #print('decoder_input: ', decoder_input.squeeze(0))
 
     return decoder_input.squeeze(0)
 
@@ -479,14 +490,14 @@ def run_validation(model, data, tokenizer_src, tokenizer_tgt, max_len):
 
     model_out = greedy_decode(model, src, src_mask, tokenizer_src, tokenizer_tgt, max_len)
 
-    source_text = data['src_text']
-    target_text = data['tgt_text']
-    model_out_text = tokenizer_tgt.decode(model_out)
+    source_text = data['src_text'][0]
+    target_text = data['tgt_text'][0]
+    model_out_text = tokenizer_tgt.decode(model_out.detach().cpu().numpy())
 
     expected = [target_text]
     predicted = [model_out_text]
 
-    print(f"SOURCE := {source_text}")
+    print(f"SOURCE := [{source_text}]")
     print(f"EXPECTED := {expected}")
     print(f"PREDICTED := {predicted}")
 
