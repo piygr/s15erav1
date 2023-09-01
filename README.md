@@ -37,7 +37,50 @@ The file is an IPython notebook. This was run separately in Kaggle to train the 
 
 
 ```
-
+Epoch  0
+Train Loss: 6.412225
+Validation Loss: 5.671622
+------
+SOURCE := [The next morning we would read that it was going to be a "warm, fine to set-fair day; much heat;" and we would dress ourselves in flimsy things, and go out, and, half-an-hour after we had started, it would commence to rain hard, and a bitterly cold wind would spring up, and both would keep on steadily for the whole day, and we would come home with colds and rheumatism all over us, and go to bed.]
+EXPECTED := ['La mattina appresso leggemmo che sarebbe stata una «bella, calda, giornata». Ci vestimmo con gli abiti leggeri, e uscimmo, e mezz’ora dopo che eravamo partiti, si scatenò una fortissima pioggia, e si mise a imperversare un vento terribilmente freddo che durò tutto il giorno.']
+PREDICTED := ['E il suo momento , che si a un ’ altro che la mia , e , e , e , e , e , e , e , e , e , e , e , e , e , e , e .']
+Validation cer: 0.7381818294525146
+Validation wer: 0.9545454382896423
+Validation BLEU: 0.0
+--------------------
+Epoch  1
+Train Loss: 5.675857
+Validation Loss: 5.255237
+------
+SOURCE := [When he had done, instead of feeling better, calmer, more enlightened by his discourse, I experienced an inexpressible sadness; for it seemed to me--I know not whether equally so to others--that the eloquence to which I had been listening had sprung from a depth where lay turbid dregs of disappointment--where moved troubling impulses of insatiate yearnings and disquieting aspirations.]
+EXPECTED := ['Quando egli ebbe terminato, invece di sentirmi più calma, più illuminata, provai una grande tristezza, perché mi pareva che quella eloquenza sgorgasse da una sorgente avvelenata da amare delusioni, e nella quale si agitavano desiderii insoddisfatti e aspirazioni angosciose.']
+PREDICTED := ['Quando era stato , come se mi aveva fatto , e mi , e mi , e mi , e mi , e mi , e mi , e non mi , e mi , e mi .']
+Validation cer: 0.7372262477874756
+Validation wer: 0.9230769276618958
+Validation BLEU: 0.0
+--------------------
+Epoch  2
+Train Loss: 5.297083
+Validation Loss: 4.992411
+------
+SOURCE := [You think all existence lapses in as quiet a flow as that in which your youth has hitherto slid away.]
+EXPECTED := ['"Voi credete che tutta la vita sia calma come la vostra giovinezza.']
+PREDICTED := ['Tu , come vi , come un uomo che ha fatto un uomo che ha fatto la vostra opinione .']
+Validation cer: 0.7761194109916687
+Validation wer: 1.4166666269302368
+Validation BLEU: 0.0
+--------------------
+Epoch  3
+Train Loss: 4.993914
+Validation Loss: 4.831674
+------
+SOURCE := [His natural feelings prompted him to justify himself and prove that she was in the wrong; but to prove her in the wrong would mean irritating her still more, and widening the breach which was the cause of all the trouble.]
+EXPECTED := ['Un sentimento istintivo pretendeva la giustificazione e la dimostrazione della colpa di lei; ma mostrare la colpa di lei significava irritarla maggiormente e aumentare quel distacco che era la causa di tutta la pena.']
+PREDICTED := ['La sua vita era sempre sempre più di lui e che la sua situazione era stata in lui ; ma la sua cosa si era sempre più forte , e che la sua vita era stata sempre più di lui .']
+Validation cer: 0.6527777910232544
+Validation wer: 1.058823585510254
+Validation BLEU: 0.0
+--------------------
 ```
 
 ## How to setup locally
